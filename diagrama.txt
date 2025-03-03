@@ -1,0 +1,65 @@
+@startuml
+
+class Departamento {
+    - codigo: String
+    - nombre: String
+    + profesores: List<Profesor>
+}
+
+class Profesor {
+    - id: String
+    - nombre: String
+    - fechaContratacion: Date
+    + cursos: List<Curso>
+    + departamento: Departamento
+}
+
+class Curso {
+    - codigo: String
+    - nombre: String
+    - descripcion: String
+    - horario: String
+    + profesor: Profesor
+    + prerrequisitos: List<Curso>
+    + evaluaciones: List<Evaluacion>
+}
+
+class Estudiante {
+    - id: String
+    - nombre: String
+    - fechaNacimiento: Date
+    + matriculas: List<Matricula>
+}
+
+class Matricula {
+    - fechaInscripcion: Date
+    - calificacionFinal: Float
+    + estudiante: Estudiante
+    + curso: Curso
+}
+
+class Evaluacion {
+    - id: String
+    - fechaRealizacion: Date
+    + curso: Curso
+}
+
+class Calificacion {
+    - valor: Float
+    + estudiante: Estudiante
+    + evaluacion: Evaluacion
+}
+
+Departamento "1" -- "0..*" Profesor : tiene >
+Profesor "1" -- "0..*" Curso : imparte >
+Curso "1" -- "1" Profesor : es impartido por >
+Curso "0..*" -- "0..*" Curso : requiere >
+Estudiante "1" -- "0..*" Matricula : se inscribe >
+Matricula "1" -- "1" Estudiante : pertenece a >
+Matricula "1" -- "1" Curso : corresponde a >
+Curso "1" -- "0..*" Evaluacion : tiene >
+Evaluacion "1" -- "1" Curso : pertenece a >
+Estudiante "1" -- "0..*" Calificacion : realiza >
+Evaluacion "1" -- "0..*" Calificacion : tiene >
+
+@enduml

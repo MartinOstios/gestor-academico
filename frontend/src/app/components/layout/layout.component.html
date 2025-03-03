@@ -1,0 +1,69 @@
+<mat-toolbar class="toolbar mat-elevation-z6">
+  <div class="toolbar-left">
+    <button mat-icon-button (click)="isMenuOpen = !isMenuOpen">
+      <mat-icon aria-hidden="false" aria-label="Menú">menu</mat-icon>
+    </button>
+    <span class="app-title">Sistema Académico</span>
+  </div>
+  <span class="spacer"></span>
+  <div class="user-info">
+    <span class="user-name">{{ username }}</span>
+    <button mat-icon-button [matMenuTriggerFor]="menu" class="profile-button">
+      <mat-icon aria-hidden="false" aria-label="Perfil">account_circle</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="onLogout()">
+        <mat-icon aria-hidden="false" aria-label="Cerrar sesión">exit_to_app</mat-icon>
+        <span>Cerrar Sesión</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>
+
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav class="sidenav" mode="side" [opened]="isMenuOpen">
+    <div class="nav-header">
+      <h3>Menú Principal</h3>
+    </div>
+    <mat-nav-list class="nav-list">
+      <a mat-list-item class="nav-item" routerLink="/dashboard" routerLinkActive="active">
+        <mat-icon aria-hidden="false" aria-label="Dashboard">dashboard</mat-icon>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/departamentos" routerLinkActive="active">
+        <mat-icon aria-hidden="false" aria-label="Departamentos">business</mat-icon>
+        <span class="nav-text">Departamentos</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/profesores" routerLinkActive="active">
+        <mat-icon aria-hidden="false" aria-label="Profesores">school</mat-icon>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/estudiantes" routerLinkActive="active">
+        <mat-icon aria-hidden="false" aria-label="Estudiantes">people</mat-icon>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/cursos" routerLinkActive="active">
+        <mat-icon aria-hidden="false" aria-label="Cursos">book</mat-icon>
+        <span class="nav-text">Cursos</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/matriculas" routerLinkActive="active">
+        <mat-icon aria-hidden="false" aria-label="Matrículas">how_to_reg</mat-icon>
+        <span class="nav-text">Matrículas</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/evaluaciones" routerLinkActive="active">
+        <mat-icon aria-hidden="false" aria-label="Evaluaciones">assignment</mat-icon>
+        <span class="nav-text">Evaluaciones</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<div class="footer">
+  © 2025 Sistema Académico - Todos los derechos reservados
+</div> 
