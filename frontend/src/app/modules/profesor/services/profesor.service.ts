@@ -13,7 +13,7 @@ export interface Profesor {
 }
 
 export interface CreateProfesorDto {
-  id: string;
+  id?: string;
   nombre: string;
   fechaContratacion: Date;
   departamentoCodigo: string;

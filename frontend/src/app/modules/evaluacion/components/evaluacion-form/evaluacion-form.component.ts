@@ -39,19 +39,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
         <mat-card-content>
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="form-row" *ngIf="!isEditing">
-              <mat-form-field appearance="outline">
-                <mat-label>ID</mat-label>
-                <input matInput formControlName="id" placeholder="Ej. EVAL001">
-                <mat-error *ngIf="form.get('id')?.hasError('required')">
-                  El ID es requerido
-                </mat-error>
-                <mat-error *ngIf="form.get('id')?.hasError('minlength') || form.get('id')?.hasError('maxlength')">
-                  El ID debe tener entre 5 y 20 caracteres
-                </mat-error>
-              </mat-form-field>
-            </div>
-
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Curso</mat-label>
@@ -129,7 +116,6 @@ export class EvaluacionFormComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {
     this.form = this.fb.group({
-      id: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(20)]],
       cursoCodigo: ['', Validators.required],
       fechaRealizacion: [new Date(), Validators.required]
     });
@@ -142,7 +128,6 @@ export class EvaluacionFormComponent implements OnInit {
     if (id) {
       this.isEditing = true;
       this.evaluacionId = id;
-      this.form.removeControl('id'); // Eliminar el control de ID en modo edición
       this.cargarEvaluacion(id);
     }
   }
@@ -202,7 +187,6 @@ export class EvaluacionFormComponent implements OnInit {
         );
       } else {
         const createData: CreateEvaluacionDto = {
-          id: this.form.value.id,
           fechaRealizacion: this.form.value.fechaRealizacion,
           cursoCodigo: this.form.value.cursoCodigo
         };

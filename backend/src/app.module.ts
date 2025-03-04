@@ -33,6 +33,7 @@ import { CalificacionController } from './controllers/calificacion.controller';
 
 // Módulos
 import { AuthModule } from './modules/auth.module';
+import { IdGeneratorModule } from './strategies/id-generator.module';
 
 @Module({
   imports: [
@@ -64,7 +65,8 @@ import { AuthModule } from './modules/auth.module';
       Evaluacion,
       Calificacion
     ]),
-    AuthModule
+    AuthModule,
+    IdGeneratorModule
   ],
   controllers: [
     AppController,

@@ -2,11 +2,6 @@ import { IsString, IsNotEmpty, Length, IsOptional, IsArray } from 'class-validat
 
 export class CreateCursoDto {
     @IsString()
-    @IsNotEmpty({ message: 'El código es requerido' })
-    @Length(3, 10, { message: 'El código debe tener entre 3 y 10 caracteres' })
-    codigo: string;
-
-    @IsString()
     @IsNotEmpty({ message: 'El nombre es requerido' })
     @Length(3, 100, { message: 'El nombre debe tener entre 3 y 100 caracteres' })
     nombre: string;

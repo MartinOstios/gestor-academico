@@ -13,7 +13,7 @@ export interface Evaluacion {
 }
 
 export interface CreateEvaluacionDto {
-  id: string;
+  id?: string;
   fechaRealizacion: Date;
   cursoCodigo: string;
 }

@@ -2,13 +2,11 @@ import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, Query } from
 import { CursoService } from '../services/curso.service';
 import { Curso } from '../entities/curso.entity';
 import { CreateCursoDto, UpdateCursoDto, AddPrerrequisitosDto } from '../dto/curso.dto';
-import { ProfesorService } from '../services/profesor.service';
 
 @Controller('cursos')
 export class CursoController {
     constructor(
-        private readonly cursoService: CursoService,
-        private readonly profesorService: ProfesorService
+        private readonly cursoService: CursoService
     ) {}
 
     @Get()
@@ -27,29 +25,7 @@ export class CursoController {
 
     @Post()
     async create(@Body() createCursoDto: CreateCursoDto): Promise<Curso> {
-        const curso = new Curso();
-        curso.codigo = createCursoDto.codigo;
-        curso.nombre = createCursoDto.nombre;
-        curso.descripcion = createCursoDto.descripcion;
-        curso.horario = createCursoDto.horario;
-        
-        // Asignar el profesor al curso
-        const profesor = await this.profesorService.findOne(createCursoDto.profesorId);
-        curso.profesor = profesor;
-        
-        // Crear el curso
-        const nuevoCurso = await this.cursoService.create(curso);
-        
-        // Agregar prerrequisitos si existen
-        if (createCursoDto.prerrequisitoCodigos && createCursoDto.prerrequisitoCodigos.length > 0) {
-            for (const codigoPrerrequisito of createCursoDto.prerrequisitoCodigos) {
-                await this.cursoService.addPrerrequisito(nuevoCurso.codigo, codigoPrerrequisito);
-            }
-            // Recargar el curso con los prerrequisitos
-            return this.cursoService.findOne(nuevoCurso.codigo);
-        }
-        
-        return nuevoCurso;
+        return this.cursoService.create(createCursoDto);
     }
 
     @Put(':codigo')
@@ -57,18 +33,7 @@ export class CursoController {
         @Param('codigo') codigo: string,
         @Body() updateCursoDto: UpdateCursoDto
     ): Promise<Curso> {
-        const curso = new Curso();
-        if (updateCursoDto.nombre) curso.nombre = updateCursoDto.nombre;
-        if (updateCursoDto.descripcion) curso.descripcion = updateCursoDto.descripcion;
-        if (updateCursoDto.horario) curso.horario = updateCursoDto.horario;
-        
-        // Actualizar el profesor si se proporciona
-        if (updateCursoDto.profesorId) {
-            const profesor = await this.profesorService.findOne(updateCursoDto.profesorId);
-            curso.profesor = profesor;
-        }
-        
-        return this.cursoService.update(codigo, curso);
+        return this.cursoService.update(codigo, updateCursoDto);
     }
 
     @Delete(':codigo')

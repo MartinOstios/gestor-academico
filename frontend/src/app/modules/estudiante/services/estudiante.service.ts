@@ -9,7 +9,7 @@ export interface Estudiante {
 }
 
 export interface CreateEstudianteDto {
-  id: string;
+  id?: string;
   nombre: string;
   fechaNacimiento: Date;
 }
@@ -36,16 +36,19 @@ export class EstudianteService {
   }
 
   create(estudiante: CreateEstudianteDto): Observable<Estudiante> {
-    console.log('Creando estudiante:', estudiante);
     return this.http.post<Estudiante>(this.apiUrl, estudiante);
   }
 
   update(id: string, estudiante: UpdateEstudianteDto): Observable<Estudiante> {
-    console.log('Actualizando estudiante:', id, estudiante);
     return this.http.put<Estudiante>(`${this.apiUrl}/${id}`, estudiante);
   }
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  // Método para obtener las calificaciones de un estudiante
+  findCalificaciones(id: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/calificaciones`);
   }
 } 

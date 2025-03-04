@@ -3,6 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Departamento {
+  codigo?: string;
+  nombre: string;
+  profesores?: any[];
+}
+
+export interface DepartamentoResponse {
   codigo: string;
   nombre: string;
   profesores?: any[];
@@ -16,20 +22,20 @@ export class DepartamentoService {
 
   constructor(private http: HttpClient) {}
 
-  findAll(): Observable<Departamento[]> {
-    return this.http.get<Departamento[]>(this.apiUrl);
+  findAll(): Observable<DepartamentoResponse[]> {
+    return this.http.get<DepartamentoResponse[]>(this.apiUrl);
   }
 
-  findOne(codigo: string): Observable<Departamento> {
-    return this.http.get<Departamento>(`${this.apiUrl}/${codigo}`);
+  findOne(codigo: string): Observable<DepartamentoResponse> {
+    return this.http.get<DepartamentoResponse>(`${this.apiUrl}/${codigo}`);
   }
 
-  create(departamento: Departamento): Observable<Departamento> {
-    return this.http.post<Departamento>(this.apiUrl, departamento);
+  create(departamento: Departamento): Observable<DepartamentoResponse> {
+    return this.http.post<DepartamentoResponse>(this.apiUrl, departamento);
   }
 
-  update(codigo: string, departamento: Departamento): Observable<Departamento> {
-    return this.http.put<Departamento>(`${this.apiUrl}/${codigo}`, departamento);
+  update(codigo: string, departamento: Departamento): Observable<DepartamentoResponse> {
+    return this.http.put<DepartamentoResponse>(`${this.apiUrl}/${codigo}`, departamento);
   }
 
   delete(codigo: string): Observable<void> {

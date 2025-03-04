@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DepartamentoService, Departamento } from '../../services/departamento.service';
+import { DepartamentoService, Departamento, DepartamentoResponse } from '../../services/departamento.service';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-departamento-form',
@@ -28,14 +29,6 @@ import { MatInputModule } from '@angular/material/input';
 
         <mat-card-content>
           <form [formGroup]="departamentoForm" (ngSubmit)="onSubmit()">
-            <mat-form-field *ngIf="!isEditing">
-              <mat-label>Código</mat-label>
-              <input matInput formControlName="codigo" required>
-              <mat-error *ngIf="departamentoForm.get('codigo')?.hasError('required')">
-                El código es requerido
-              </mat-error>
-            </mat-form-field>
-
             <mat-form-field>
               <mat-label>Nombre</mat-label>
               <input matInput formControlName="nombre" required>
@@ -85,10 +78,10 @@ export class DepartamentoFormComponent implements OnInit {
     private fb: FormBuilder,
     private departamentoService: DepartamentoService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {
     this.departamentoForm = this.fb.group({
-      codigo: ['', [Validators.required]],
       nombre: ['', [Validators.required]]
     });
   }
@@ -103,25 +96,54 @@ export class DepartamentoFormComponent implements OnInit {
 
   loadDepartamento(codigo: string): void {
     this.departamentoService.findOne(codigo).subscribe(
-      (departamento: Departamento) => {
-        this.departamentoForm.patchValue(departamento);
-        this.departamentoForm.get('codigo')?.disable();
+      (departamento: DepartamentoResponse) => {
+        this.departamentoForm.patchValue({
+          nombre: departamento.nombre
+        });
+      },
+      (error) => {
+        this.snackBar.open('Error al cargar el departamento', 'Cerrar', {
+          duration: 3000
+        });
+        this.router.navigate(['/departamentos']);
       }
     );
   }
 
   onSubmit(): void {
     if (this.departamentoForm.valid) {
-      const departamento: Departamento = this.departamentoForm.value;
+      const departamento: Departamento = {
+        nombre: this.departamentoForm.value.nombre
+      };
       
       if (this.isEditing) {
         const codigo = this.route.snapshot.params['id'];
         this.departamentoService.update(codigo, departamento).subscribe(
-          () => this.router.navigate(['/departamentos'])
+          () => {
+            this.snackBar.open('Departamento actualizado con éxito', 'Cerrar', {
+              duration: 3000
+            });
+            this.router.navigate(['/departamentos']);
+          },
+          (error) => {
+            this.snackBar.open('Error al actualizar el departamento', 'Cerrar', {
+              duration: 3000
+            });
+          }
         );
       } else {
         this.departamentoService.create(departamento).subscribe(
-          () => this.router.navigate(['/departamentos'])
+          () => {
+            this.snackBar.open('Departamento creado con éxito', 'Cerrar', {
+              duration: 3000
+            });
+            this.router.navigate(['/departamentos']);
+          },
+          (error) => {
+            this.snackBar.open('Error al crear el departamento', 'Cerrar', {
+              duration: 3000
+            });
+          }
         );
       }
     }

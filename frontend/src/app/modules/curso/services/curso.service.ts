@@ -16,7 +16,7 @@ export interface Curso {
 }
 
 export interface CreateCursoDto {
-  codigo: string;
+  codigo?: string;
   nombre: string;
   descripcion: string;
   horario: string;

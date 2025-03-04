@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-curso-form',
@@ -33,19 +34,6 @@ import { MatOptionModule } from '@angular/material/core';
 
         <mat-card-content>
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="form-row" *ngIf="!isEditing">
-              <mat-form-field appearance="outline">
-                <mat-label>Código</mat-label>
-                <input matInput formControlName="codigo" placeholder="Ej. MAT101">
-                <mat-error *ngIf="form.get('codigo')?.hasError('required')">
-                  El código es requerido
-                </mat-error>
-                <mat-error *ngIf="form.get('codigo')?.hasError('minlength') || form.get('codigo')?.hasError('maxlength')">
-                  El código debe tener entre 3 y 10 caracteres
-                </mat-error>
-              </mat-form-field>
-            </div>
-
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Nombre</mat-label>
@@ -140,10 +128,10 @@ export class CursoFormComponent implements OnInit {
     private cursoService: CursoService,
     private profesorService: ProfesorService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {
     this.form = this.fb.group({
-      codigo: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]],
       nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
       descripcion: ['', Validators.required],
       horario: ['', Validators.required],
@@ -158,7 +146,6 @@ export class CursoFormComponent implements OnInit {
     if (codigo) {
       this.isEditing = true;
       this.cursoCodigo = codigo;
-      this.form.removeControl('codigo'); // Eliminar el control de código en modo edición
       this.cargarCurso(codigo);
     }
   }
@@ -170,6 +157,9 @@ export class CursoFormComponent implements OnInit {
       },
       error => {
         console.error('Error al cargar profesores', error);
+        this.snackBar.open('Error al cargar profesores', 'Cerrar', {
+          duration: 3000
+        });
       }
     );
   }
@@ -186,6 +176,9 @@ export class CursoFormComponent implements OnInit {
       },
       error => {
         console.error('Error al cargar curso', error);
+        this.snackBar.open('Error al cargar el curso', 'Cerrar', {
+          duration: 3000
+        });
         this.router.navigate(['/cursos']);
       }
     );
@@ -203,15 +196,20 @@ export class CursoFormComponent implements OnInit {
         
         this.cursoService.update(this.cursoCodigo, updateData).subscribe(
           () => {
+            this.snackBar.open('Curso actualizado con éxito', 'Cerrar', {
+              duration: 3000
+            });
             this.router.navigate(['/cursos']);
           },
           error => {
             console.error('Error al actualizar curso', error);
+            this.snackBar.open('Error al actualizar el curso', 'Cerrar', {
+              duration: 3000
+            });
           }
         );
       } else {
         const createData: CreateCursoDto = {
-          codigo: this.form.value.codigo,
           nombre: this.form.value.nombre,
           descripcion: this.form.value.descripcion,
           horario: this.form.value.horario,
@@ -220,10 +218,16 @@ export class CursoFormComponent implements OnInit {
         
         this.cursoService.create(createData).subscribe(
           () => {
+            this.snackBar.open('Curso creado con éxito', 'Cerrar', {
+              duration: 3000
+            });
             this.router.navigate(['/cursos']);
           },
           error => {
             console.error('Error al crear curso', error);
+            this.snackBar.open('Error al crear el curso', 'Cerrar', {
+              duration: 3000
+            });
           }
         );
       }

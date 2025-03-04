@@ -2,12 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Departamento } from '../entities/departamento.entity';
+import { IdGeneratorContext } from '../strategies/id-generator.strategy';
+import { CreateDepartamentoDto, UpdateDepartamentoDto } from '../dto/departamento.dto';
 
 @Injectable()
 export class DepartamentoService {
     constructor(
         @InjectRepository(Departamento)
-        private departamentoRepository: Repository<Departamento>
+        private departamentoRepository: Repository<Departamento>,
+        private idGenerator: IdGeneratorContext
     ) {}
 
     async findAll(): Promise<Departamento[]> {
@@ -29,16 +32,31 @@ export class DepartamentoService {
         return departamento;
     }
 
-    async create(departamento: Departamento): Promise<Departamento> {
-        return this.departamentoRepository.save(departamento);
+    async create(createDepartamentoDto: CreateDepartamentoDto): Promise<Departamento> {
+        // Generar código automáticamente
+        const codigo = await this.idGenerator.generateId('departamento', this.departamentoRepository);
+        
+        // Crear nueva instancia con el código generado
+        const nuevoDepartamento = this.departamentoRepository.create({
+            codigo,
+            nombre: createDepartamentoDto.nombre
+        });
+        
+        return this.departamentoRepository.save(nuevoDepartamento);
     }
 
-    async update(codigo: string, departamento: Departamento): Promise<Departamento> {
+    async update(codigo: string, updateDepartamentoDto: UpdateDepartamentoDto): Promise<Departamento> {
         const existingDepartamento = await this.findOne(codigo);
         if (!existingDepartamento) {
             throw new NotFoundException(`Departamento con código ${codigo} no encontrado`);
         }
-        await this.departamentoRepository.update(codigo, departamento);
+        
+        // Actualizar solo los campos proporcionados
+        if (updateDepartamentoDto.nombre) {
+            existingDepartamento.nombre = updateDepartamentoDto.nombre;
+        }
+        
+        await this.departamentoRepository.save(existingDepartamento);
         return this.findOne(codigo);
     }
 

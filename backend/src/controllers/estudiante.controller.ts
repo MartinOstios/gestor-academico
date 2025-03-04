@@ -17,13 +17,14 @@ export class EstudianteController {
         return this.estudianteService.findOne(id);
     }
 
+    @Get(':id/calificaciones')
+    async findCalificaciones(@Param('id') id: string): Promise<any[]> {
+        return this.estudianteService.findCalificaciones(id);
+    }
+
     @Post()
     async create(@Body() createEstudianteDto: CreateEstudianteDto): Promise<Estudiante> {
-        const estudiante = new Estudiante();
-        estudiante.id = createEstudianteDto.id;
-        estudiante.nombre = createEstudianteDto.nombre;
-        estudiante.fechaNacimiento = createEstudianteDto.fechaNacimiento;
-        return this.estudianteService.create(estudiante);
+        return this.estudianteService.create(createEstudianteDto);
     }
 
     @Put(':id')
@@ -31,10 +32,7 @@ export class EstudianteController {
         @Param('id') id: string,
         @Body() updateEstudianteDto: UpdateEstudianteDto
     ): Promise<Estudiante> {
-        const estudiante = new Estudiante();
-        estudiante.nombre = updateEstudianteDto.nombre;
-        estudiante.fechaNacimiento = updateEstudianteDto.fechaNacimiento;
-        return this.estudianteService.update(id, estudiante);
+        return this.estudianteService.update(id, updateEstudianteDto);
     }
 
     @Delete(':id')

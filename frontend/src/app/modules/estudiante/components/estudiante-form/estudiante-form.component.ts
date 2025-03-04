@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-estudiante-form',
@@ -32,19 +33,6 @@ import { MatNativeDateModule } from '@angular/material/core';
 
         <mat-card-content>
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="form-row" *ngIf="!isEditing">
-              <mat-form-field appearance="outline">
-                <mat-label>ID</mat-label>
-                <input matInput formControlName="id" placeholder="Ingrese el ID (5-20 caracteres)">
-                <mat-error *ngIf="form.get('id')?.hasError('required')">
-                  El ID es requerido
-                </mat-error>
-                <mat-error *ngIf="form.get('id')?.hasError('minlength') || form.get('id')?.hasError('maxlength')">
-                  El ID debe tener entre 5 y 20 caracteres
-                </mat-error>
-              </mat-form-field>
-            </div>
-
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Nombre</mat-label>
@@ -115,10 +103,10 @@ export class EstudianteFormComponent implements OnInit {
     private fb: FormBuilder,
     private estudianteService: EstudianteService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {
     this.form = this.fb.group({
-      id: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(20)]],
       nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
       fechaNacimiento: ['', Validators.required]
     });
@@ -129,7 +117,6 @@ export class EstudianteFormComponent implements OnInit {
     if (id) {
       this.isEditing = true;
       this.estudianteId = id;
-      this.form.removeControl('id'); // Eliminar el control de ID en modo edición
       this.loadEstudiante(id);
     }
   }
@@ -141,6 +128,13 @@ export class EstudianteFormComponent implements OnInit {
           nombre: estudiante.nombre,
           fechaNacimiento: new Date(estudiante.fechaNacimiento)
         });
+      },
+      error => {
+        console.error('Error al cargar estudiante:', error);
+        this.snackBar.open('Error al cargar los datos del estudiante', 'Cerrar', {
+          duration: 3000
+        });
+        this.router.navigate(['/estudiantes']);
       }
     );
   }
@@ -153,19 +147,40 @@ export class EstudianteFormComponent implements OnInit {
           fechaNacimiento: this.form.value.fechaNacimiento
         };
         
-        this.estudianteService.update(this.estudianteId, updateData).subscribe(() => {
-          this.router.navigate(['/estudiantes']);
-        });
+        this.estudianteService.update(this.estudianteId, updateData).subscribe(
+          () => {
+            this.snackBar.open('Estudiante actualizado con éxito', 'Cerrar', {
+              duration: 3000
+            });
+            this.router.navigate(['/estudiantes']);
+          },
+          error => {
+            console.error('Error al actualizar estudiante:', error);
+            this.snackBar.open('Error al actualizar el estudiante', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        );
       } else {
         const createData: CreateEstudianteDto = {
-          id: this.form.value.id,
           nombre: this.form.value.nombre,
           fechaNacimiento: this.form.value.fechaNacimiento
         };
         
-        this.estudianteService.create(createData).subscribe(() => {
-          this.router.navigate(['/estudiantes']);
-        });
+        this.estudianteService.create(createData).subscribe(
+          () => {
+            this.snackBar.open('Estudiante creado con éxito', 'Cerrar', {
+              duration: 3000
+            });
+            this.router.navigate(['/estudiantes']);
+          },
+          error => {
+            console.error('Error al crear estudiante:', error);
+            this.snackBar.open('Error al crear el estudiante', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        );
       }
     }
   }

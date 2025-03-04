@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProfesorService, CreateProfesorDto, UpdateProfesorDto } from '../../services/profesor.service';
-import { DepartamentoService, Departamento } from '../../../departamento/services/departamento.service';
+import { DepartamentoService, Departamento, DepartamentoResponse } from '../../../departamento/services/departamento.service';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-profesor-form',
@@ -36,19 +37,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 
         <mat-card-content>
           <form [formGroup]="profesorForm" (ngSubmit)="onSubmit()">
-            <ng-container *ngIf="!isEditing">
-              <mat-form-field>
-                <mat-label>ID</mat-label>
-                <input matInput formControlName="id" required>
-                <mat-error *ngIf="profesorForm.get('id')?.hasError('required')">
-                  El ID es requerido
-                </mat-error>
-                <mat-error *ngIf="profesorForm.get('id')?.hasError('minlength') || profesorForm.get('id')?.hasError('maxlength')">
-                  El ID debe tener entre 5 y 20 caracteres
-                </mat-error>
-              </mat-form-field>
-            </ng-container>
-
             <mat-form-field>
               <mat-label>Nombre</mat-label>
               <input matInput formControlName="nombre" required>
@@ -127,7 +115,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class ProfesorFormComponent implements OnInit {
   profesorForm: FormGroup;
   isEditing: boolean = false;
-  departamentos: Departamento[] = [];
+  departamentos: DepartamentoResponse[] = [];
   errorMessage: string = '';
 
   constructor(
@@ -135,10 +123,10 @@ export class ProfesorFormComponent implements OnInit {
     private profesorService: ProfesorService,
     private departamentoService: DepartamentoService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {
     this.profesorForm = this.fb.group({
-      id: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(20)]],
       nombre: ['', Validators.required],
       fechaContratacion: [new Date(), Validators.required],
       departamentoCodigo: ['', Validators.required]
@@ -152,8 +140,6 @@ export class ProfesorFormComponent implements OnInit {
     if (id) {
       this.isEditing = true;
       this.loadProfesor(id);
-      // Eliminar el control de ID para edición
-      this.profesorForm.removeControl('id');
     }
   }
 
@@ -166,6 +152,9 @@ export class ProfesorFormComponent implements OnInit {
       error => {
         console.error('Error al cargar departamentos:', error);
         this.errorMessage = 'Error al cargar los departamentos. Por favor, intente de nuevo.';
+        this.snackBar.open('Error al cargar los departamentos', 'Cerrar', {
+          duration: 3000
+        });
       }
     );
   }
@@ -185,6 +174,10 @@ export class ProfesorFormComponent implements OnInit {
       error => {
         console.error('Error al cargar profesor:', error);
         this.errorMessage = 'Error al cargar los datos del profesor. Por favor, intente de nuevo.';
+        this.snackBar.open('Error al cargar los datos del profesor', 'Cerrar', {
+          duration: 3000
+        });
+        this.router.navigate(['/profesores']);
       }
     );
   }
@@ -199,27 +192,42 @@ export class ProfesorFormComponent implements OnInit {
         this.profesorService.update(id, formData as UpdateProfesorDto).subscribe(
           response => {
             console.log('Profesor actualizado:', response);
+            this.snackBar.open('Profesor actualizado con éxito', 'Cerrar', {
+              duration: 3000
+            });
             this.router.navigate(['/profesores']);
           },
           (error: HttpErrorResponse) => {
             console.error('Error al actualizar profesor:', error);
             this.errorMessage = error.error?.message || 'Error al actualizar el profesor. Por favor, intente de nuevo.';
+            this.snackBar.open('Error al actualizar el profesor', 'Cerrar', {
+              duration: 3000
+            });
           }
         );
       } else {
         this.profesorService.create(formData as CreateProfesorDto).subscribe(
           response => {
             console.log('Profesor creado:', response);
+            this.snackBar.open('Profesor creado con éxito', 'Cerrar', {
+              duration: 3000
+            });
             this.router.navigate(['/profesores']);
           },
           (error: HttpErrorResponse) => {
             console.error('Error al crear profesor:', error);
             this.errorMessage = error.error?.message || 'Error al crear el profesor. Por favor, intente de nuevo.';
+            this.snackBar.open('Error al crear el profesor', 'Cerrar', {
+              duration: 3000
+            });
           }
         );
       }
     } else {
       this.errorMessage = 'Por favor, complete todos los campos requeridos correctamente.';
+      this.snackBar.open('Por favor, complete todos los campos requeridos correctamente', 'Cerrar', {
+        duration: 3000
+      });
       console.error('Formulario inválido:', this.profesorForm.errors);
     }
   }

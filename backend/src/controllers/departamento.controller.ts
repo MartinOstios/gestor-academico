@@ -19,10 +19,7 @@ export class DepartamentoController {
 
     @Post()
     async create(@Body() createDepartamentoDto: CreateDepartamentoDto): Promise<Departamento> {
-        const departamento = new Departamento();
-        departamento.codigo = createDepartamentoDto.codigo;
-        departamento.nombre = createDepartamentoDto.nombre;
-        return this.departamentoService.create(departamento);
+        return this.departamentoService.create(createDepartamentoDto);
     }
 
     @Put(':codigo')
@@ -30,9 +27,7 @@ export class DepartamentoController {
         @Param('codigo') codigo: string,
         @Body() updateDepartamentoDto: UpdateDepartamentoDto
     ): Promise<Departamento> {
-        const departamento = new Departamento();
-        departamento.nombre = updateDepartamentoDto.nombre;
-        return this.departamentoService.update(codigo, departamento);
+        return this.departamentoService.update(codigo, updateDepartamentoDto);
     }
 
     @Delete(':codigo')
