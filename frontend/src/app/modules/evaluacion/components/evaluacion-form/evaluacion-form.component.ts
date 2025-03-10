@@ -168,7 +168,8 @@ export class EvaluacionFormComponent implements OnInit {
     if (this.form.valid) {
       if (this.isEditing) {
         const updateData: UpdateEvaluacionDto = {
-          fechaRealizacion: this.form.value.fechaRealizacion
+          fechaRealizacion: this.form.value.fechaRealizacion,
+          cursoCodigo: this.form.value.cursoCodigo
         };
         
         this.evaluacionService.update(this.evaluacionId, updateData).subscribe(

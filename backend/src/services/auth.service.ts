@@ -5,6 +5,12 @@ import { Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
 import { LoginDto, RegisterDto } from '../dto/auth.dto';
 
+/**
+ * Servicio para la gestión de autenticación y autorización
+ * 
+ * Este servicio maneja todas las operaciones relacionadas con la autenticación de usuarios,
+ * incluyendo registro, inicio de sesión y gestión de tokens JWT.
+ */
 @Injectable()
 export class AuthService {
     constructor(
@@ -13,6 +19,18 @@ export class AuthService {
         private jwtService: JwtService
     ) {}
 
+    /**
+     * Registra un nuevo usuario en el sistema
+     * 
+     * @param registerDto Datos del nuevo usuario
+     * @returns Usuario creado
+     * 
+     * Lógica de Negocio:
+     * - Valida que el username no exista
+     * - Encripta la contraseña
+     * - Asigna el rol correspondiente
+     * - Crea el registro del usuario
+     */
     async register(registerDto: RegisterDto) {
         const usuarioExistente = await this.usuarioRepository.findOne({
             where: { username: registerDto.username }
@@ -51,6 +69,44 @@ export class AuthService {
         };
     }
 
+    /**
+     * Valida las credenciales de un usuario
+     * 
+     * @param username Nombre de usuario
+     * @param password Contraseña
+     * @returns Usuario validado
+     * @throws UnauthorizedException si las credenciales son inválidas
+     * 
+     * Lógica de Negocio:
+     * - Busca el usuario por username
+     * - Verifica la contraseña encriptada
+     * - Maneja intentos fallidos de login
+     */
+    async validateUser(username: string, password: string): Promise<Usuario> {
+        const usuario = await this.usuarioRepository.findOne({
+            where: { username }
+        });
+
+        if (usuario && await usuario.validatePassword(password)) {
+            return usuario;
+        }
+
+        throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    /**
+     * Procesa el inicio de sesión de un usuario
+     * 
+     * @param loginDto Credenciales de inicio de sesión
+     * @returns Token JWT y datos del usuario
+     * @throws UnauthorizedException si las credenciales son inválidas
+     * 
+     * Lógica de Negocio:
+     * - Valida las credenciales del usuario
+     * - Genera el token JWT
+     * - Incluye información relevante en el payload
+     * - Retorna el token y datos del usuario
+     */
     async login(loginDto: LoginDto) {
         const usuario = await this.usuarioRepository.findOne({
             where: { username: loginDto.username }
@@ -60,7 +116,12 @@ export class AuthService {
             throw new UnauthorizedException('Credenciales inválidas');
         }
 
-        const payload = { username: usuario.username, sub: usuario.username, rol: usuario.rol };
+        const payload = { 
+            username: usuario.username, 
+            sub: usuario.username, 
+            rol: usuario.rol 
+        };
+        
         return {
             token: this.jwtService.sign(payload),
             user: {
@@ -70,5 +131,26 @@ export class AuthService {
                 referenciaId: usuario.referenciaId
             }
         };
+    }
+
+    /**
+     * Verifica y decodifica un token JWT
+     * 
+     * @param token Token JWT a verificar
+     * @returns Payload decodificado
+     * @throws UnauthorizedException si el token es inválido
+     * 
+     * Lógica de Negocio:
+     * - Verifica la firma del token
+     * - Valida la expiración
+     * - Decodifica el payload
+     * - Verifica los permisos incluidos
+     */
+    async verifyToken(token: string): Promise<any> {
+        try {
+            return this.jwtService.verify(token);
+        } catch (error) {
+            throw new UnauthorizedException('Token inválido o expirado');
+        }
     }
 } 

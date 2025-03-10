@@ -53,4 +53,13 @@ export class CursoController {
         }
         return this.cursoService.findOne(codigo);
     }
+    
+    @Delete(':codigo/prerrequisitos/:codigoPrerrequisito')
+    @HttpCode(204)
+    async removePrerrequisito(
+        @Param('codigo') codigo: string,
+        @Param('codigoPrerrequisito') codigoPrerrequisito: string
+    ): Promise<void> {
+        await this.cursoService.removePrerrequisito(codigo, codigoPrerrequisito);
+    }
 } 

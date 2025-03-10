@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { Profesor } from './profesor.entity';
 import { Evaluacion } from './evaluacion.entity';
+import { Horario } from './horario.entity';
 
 @Entity()
 export class Curso {
@@ -13,9 +14,6 @@ export class Curso {
     @Column()
     descripcion: string;
 
-    @Column()
-    horario: string;
-
     @ManyToOne(() => Profesor, profesor => profesor.cursos)
     profesor: Profesor;
 
@@ -25,4 +23,7 @@ export class Curso {
 
     @OneToMany(() => Evaluacion, evaluacion => evaluacion.curso)
     evaluaciones: Evaluacion[];
+    
+    @OneToMany(() => Horario, horario => horario.curso, { cascade: true })
+    horarios: Horario[];
 } 

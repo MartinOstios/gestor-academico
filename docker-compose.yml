@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=admin
+      - DB_PASSWORD=admin123
+      - DB_DATABASE=sistema_academico
+      - JWT_SECRET=tu_clave_secreta_muy_segura_2024
+      - JWT_EXPIRATION=24h
+    volumes:
+      - ./backend/src:/usr/src/app/src
+      - ./backend/test:/usr/src/app/test
+      - ./backend/package.json:/usr/src/app/package.json
+      - ./backend/package-lock.json:/usr/src/app/package-lock.json
+      - ./backend/tsconfig.json:/usr/src/app/tsconfig.json
+      - ./backend/nest-cli.json:/usr/src/app/nest-cli.json
+    networks:
+      - app-network
+    # Habilitar el modo de desarrollo con hot-reload
+    command: npm run start:dev
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin123
+      - POSTGRES_DB=sistema_academico
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge 

@@ -20,6 +20,7 @@ export interface CreateEvaluacionDto {
 
 export interface UpdateEvaluacionDto {
   fechaRealizacion: Date;
+  cursoCodigo?: string;
 }
 
 @Injectable({

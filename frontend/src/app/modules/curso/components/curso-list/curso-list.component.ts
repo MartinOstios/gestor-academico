@@ -14,6 +14,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-curso-list',
@@ -28,7 +29,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatChipsModule
   ],
   template: `
     <div class="container">
@@ -72,10 +74,19 @@ import { MatTooltipModule } from '@angular/material/tooltip';
                 <td mat-cell *matCellDef="let row"> {{row.profesor?.nombre || 'No asignado'}} </td>
               </ng-container>
 
-              <!-- Horario Column -->
-              <ng-container matColumnDef="horario">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header> Horario </th>
-                <td mat-cell *matCellDef="let row"> {{row.horario}} </td>
+              <!-- Horarios Column -->
+              <ng-container matColumnDef="horarios">
+                <th mat-header-cell *matHeaderCellDef> Horarios </th>
+                <td mat-cell *matCellDef="let row">
+                  <div *ngIf="row.horarios && row.horarios.length > 0" class="horarios-container">
+                    <mat-chip-set>
+                      <mat-chip *ngFor="let horario of row.horarios" [matTooltip]="horario.dia + ': ' + horario.horaInicio + ' - ' + horario.horaFin">
+                        {{ horario.dia.substring(0, 3) }} {{ horario.horaInicio }}-{{ horario.horaFin }}
+                      </mat-chip>
+                    </mat-chip-set>
+                  </div>
+                  <span *ngIf="!row.horarios || row.horarios.length === 0">Sin horarios</span>
+                </td>
               </ng-container>
 
               <!-- Acciones Column -->
@@ -208,6 +219,23 @@ import { MatTooltipModule } from '@angular/material/tooltip';
       opacity: 0.5;
     }
 
+    .horarios-container {
+      max-width: 300px;
+      overflow: hidden;
+    }
+
+    mat-chip-set {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    mat-chip {
+      font-size: 12px;
+      height: 24px;
+      background-color: #e0e0e0;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
       .container {
@@ -223,7 +251,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   ]
 })
 export class CursoListComponent implements OnInit {
-  displayedColumns: string[] = ['codigo', 'nombre', 'profesor', 'horario', 'acciones'];
+  displayedColumns: string[] = ['codigo', 'nombre', 'profesor', 'horarios', 'acciones'];
   dataSource: MatTableDataSource<Curso>;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -267,18 +295,20 @@ export class CursoListComponent implements OnInit {
   }
 
   editarCurso(codigo: string): void {
-    this.router.navigate(['/cursos/editar', codigo]);
+    this.router.navigate([`/cursos/editar/${codigo}`]);
   }
 
   gestionarPrerrequisitos(codigo: string): void {
-    this.router.navigate(['/cursos/prerrequisitos', codigo]);
+    this.router.navigate([`/cursos/prerrequisitos/${codigo}`]);
   }
 
   eliminarCurso(codigo: string): void {
-    if (confirm('¿Está seguro que desea eliminar este curso?')) {
-      this.cursoService.delete(codigo).subscribe(() => {
-        this.cargarCursos();
-      });
+    if (confirm('¿Está seguro de que desea eliminar este curso?')) {
+      this.cursoService.delete(codigo).subscribe(
+        () => {
+          this.cargarCursos();
+        }
+      );
     }
   }
 } 

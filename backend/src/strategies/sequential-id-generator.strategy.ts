@@ -17,6 +17,9 @@ export class SequentialIdGeneratorStrategy implements IdGeneratorStrategy {
     'evaluacion': 'EVAL'
   };
 
+  // Entidades que usan 'codigo' como identificador en lugar de 'id'
+  private readonly useCodigoAsId = ['departamento', 'curso'];
+
   /**
    * Genera un ID secuencial para la entidad especificada
    * @param entityName Nombre de la entidad
@@ -27,17 +30,20 @@ export class SequentialIdGeneratorStrategy implements IdGeneratorStrategy {
     // Obtener el prefijo para la entidad
     const prefix = this.prefixMap[entityName.toLowerCase()] || entityName.substring(0, 3).toUpperCase();
     
+    // Determinar qué campo usar como identificador
+    const idField = this.useCodigoAsId.includes(entityName) ? 'codigo' : 'id';
+    
     // Buscar el último ID con el mismo prefijo
     let lastId = '';
     
     try {
       // Intentar encontrar la última entidad con el mismo prefijo
       const lastEntity = await repository.createQueryBuilder(entityName)
-        .where(`${entityName === 'departamento' ? 'codigo' : 'id'} LIKE :prefix`, { prefix: `${prefix}-%` })
-        .orderBy(`${entityName === 'departamento' ? 'codigo' : 'id'}`, 'DESC')
+        .where(`${idField} LIKE :prefix`, { prefix: `${prefix}-%` })
+        .orderBy(`${idField}`, 'DESC')
         .getOne();
       
-      lastId = lastEntity ? (entityName === 'departamento' ? lastEntity.codigo : lastEntity.id) : '';
+      lastId = lastEntity ? lastEntity[idField] : '';
     } catch (error) {
       console.error(`Error al buscar el último ID para ${entityName}:`, error);
       // Si hay un error, dejamos lastId como cadena vacía

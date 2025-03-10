@@ -1,33 +1,33 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { CreateHorarioDto, Horario } from './horario.service';
 
 export interface Curso {
   codigo: string;
   nombre: string;
   descripcion: string;
-  horario: string;
   profesor?: {
     id: string;
     nombre: string;
   };
   prerrequisitos?: Curso[];
   evaluaciones?: any[];
+  horarios?: Horario[];
 }
 
 export interface CreateCursoDto {
   codigo?: string;
   nombre: string;
   descripcion: string;
-  horario: string;
   profesorId: string;
   prerrequisitoCodigos?: string[];
+  horarios: CreateHorarioDto[];
 }
 
 export interface UpdateCursoDto {
   nombre?: string;
   descripcion?: string;
-  horario?: string;
   profesorId?: string;
 }
 
@@ -67,5 +67,9 @@ export class CursoService {
 
   addPrerrequisitos(codigo: string, prerrequisitos: AddPrerrequisitosDto): Observable<Curso> {
     return this.http.post<Curso>(`${this.apiUrl}/${codigo}/prerrequisitos`, prerrequisitos);
+  }
+
+  removePrerrequisito(codigo: string, codigoPrerrequisito: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${codigo}/prerrequisitos/${codigoPrerrequisito}`);
   }
 } 

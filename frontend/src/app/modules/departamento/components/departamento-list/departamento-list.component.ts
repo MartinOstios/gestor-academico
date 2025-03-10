@@ -13,6 +13,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatListModule } from '@angular/material/list';
 
 @Component({
   selector: 'app-departamento-list',
@@ -26,7 +29,16 @@ import { MatSortModule } from '@angular/material/sort';
     MatInputModule,
     MatTableModule,
     MatPaginatorModule,
-    MatSortModule
+    MatSortModule,
+    MatTooltipModule,
+    MatListModule
+  ],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({height: '0px', minHeight: '0'})),
+      state('expanded', style({height: '*'})),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ]),
   ],
   template: `
     <div class="container">
@@ -51,7 +63,8 @@ import { MatSortModule } from '@angular/material/sort';
           </mat-form-field>
 
           <div class="table-container mat-elevation-z2">
-            <table mat-table [dataSource]="dataSource" matSort class="mat-table-striped">
+            <table mat-table [dataSource]="dataSource" matSort class="mat-table-striped"
+                   multiTemplateDataRows>
               <!-- Código Column -->
               <ng-container matColumnDef="codigo">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
@@ -62,6 +75,17 @@ import { MatSortModule } from '@angular/material/sort';
               <ng-container matColumnDef="nombre">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </th>
                 <td mat-cell *matCellDef="let row"> {{row.nombre}} </td>
+              </ng-container>
+
+              <!-- Profesores Count Column -->
+              <ng-container matColumnDef="profesoresCount">
+                <th mat-header-cell *matHeaderCellDef> Profesores </th>
+                <td mat-cell *matCellDef="let row">
+                  <button mat-button color="primary" (click)="expandRow(row)" [matTooltip]="'Ver profesores'">
+                    {{ row.profesores?.length || 0 }} 
+                    <mat-icon>{{ expandedElement === row ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </button>
+                </td>
               </ng-container>
 
               <!-- Acciones Column -->
@@ -79,12 +103,40 @@ import { MatSortModule } from '@angular/material/sort';
                 </td>
               </ng-container>
 
+              <!-- Expanded Content Column -->
+              <ng-container matColumnDef="expandedDetail">
+                <td mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+                  <div class="row-detail" [@detailExpand]="row === expandedElement ? 'expanded' : 'collapsed'">
+                    <div class="profesores-list" *ngIf="row.profesores?.length; else noProfesores">
+                      <h3>Profesores del Departamento</h3>
+                      <mat-list>
+                        <mat-list-item *ngFor="let profesor of row.profesores">
+                          <mat-icon matListItemIcon>person</mat-icon>
+                          <div matListItemTitle>{{profesor.nombre}}</div>
+                          <div matListItemLine>{{profesor.email}}</div>
+                        </mat-list-item>
+                      </mat-list>
+                    </div>
+                    <ng-template #noProfesores>
+                      <div class="no-profesores">
+                        <mat-icon>person_off</mat-icon>
+                        <p>No hay profesores asignados a este departamento</p>
+                      </div>
+                    </ng-template>
+                  </div>
+                </td>
+              </ng-container>
+
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                  class="table-row"
+                  [class.expanded-row]="expandedElement === row"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['expandedDetail']"
+                  class="detail-row"></tr>
 
               <!-- Row shown when there is no matching data. -->
               <tr class="mat-row" *matNoDataRow>
-                <td class="mat-cell no-data-cell" colspan="3">
+                <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
                   <div class="no-data-message">
                     <mat-icon aria-hidden="false" aria-label="Sin resultados">search_off</mat-icon>
                     <p>No se encontraron datos que coincidan con el filtro "{{input.value}}"</p>
@@ -155,7 +207,7 @@ import { MatSortModule } from '@angular/material/sort';
       width: 100%;
     }
 
-    .mat-table-striped .mat-row:nth-child(even) {
+    .mat-table-striped .mat-row:nth-child(even):not(.detail-row) {
       background-color: #f9f9f9;
     }
 
@@ -191,6 +243,46 @@ import { MatSortModule } from '@angular/material/sort';
       opacity: 0.5;
     }
 
+    tr.detail-row {
+      height: 0;
+    }
+
+    .row-detail {
+      overflow: hidden;
+    }
+
+    .profesores-list {
+      padding: 16px;
+    }
+
+    .profesores-list h3 {
+      color: #3f51b5;
+      margin-bottom: 16px;
+    }
+
+    .no-profesores {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      color: #757575;
+    }
+
+    .no-profesores mat-icon {
+      font-size: 48px;
+      height: 48px;
+      width: 48px;
+      margin-bottom: 16px;
+    }
+
+    tr.expanded-row {
+      background: #f5f5f5;
+    }
+
+    tr.expanded-row:hover {
+      background: #efefef;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
       .container {
@@ -206,8 +298,9 @@ import { MatSortModule } from '@angular/material/sort';
   ]
 })
 export class DepartamentoListComponent implements OnInit {
-  displayedColumns: string[] = ['codigo', 'nombre', 'acciones'];
+  displayedColumns: string[] = ['codigo', 'nombre', 'profesoresCount', 'acciones'];
   dataSource: MatTableDataSource<Departamento>;
+  expandedElement: Departamento | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -234,6 +327,10 @@ export class DepartamentoListComponent implements OnInit {
         this.dataSource.data = departamentos;
       }
     );
+  }
+
+  expandRow(row: Departamento): void {
+    this.expandedElement = this.expandedElement === row ? null : row;
   }
 
   applyFilter(event: Event) {

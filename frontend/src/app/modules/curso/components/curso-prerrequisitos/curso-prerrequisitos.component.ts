@@ -12,6 +12,9 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-curso-prerrequisitos',
@@ -27,11 +30,14 @@ import { MatListModule } from '@angular/material/list';
     MatOptionModule,
     MatChipsModule,
     MatIconModule,
-    MatListModule
+    MatListModule,
+    MatSnackBarModule,
+    MatTooltipModule,
+    MatDividerModule
   ],
   template: `
     <div class="container">
-      <mat-card>
+      <mat-card class="mat-elevation-z4">
         <mat-card-header>
           <mat-card-title>Gestionar Prerrequisitos</mat-card-title>
           <mat-card-subtitle *ngIf="curso">{{ curso.nombre }} ({{ curso.codigo }})</mat-card-subtitle>
@@ -43,8 +49,16 @@ import { MatListModule } from '@angular/material/list';
             <div *ngIf="curso.prerrequisitos && curso.prerrequisitos.length > 0; else noPrerrequisitos">
               <mat-list>
                 <mat-list-item *ngFor="let prerrequisito of curso.prerrequisitos">
-                  <span matListItemTitle>{{ prerrequisito.nombre }}</span>
-                  <span matListItemLine>{{ prerrequisito.codigo }}</span>
+                  <div class="prerrequisito-item">
+                    <div>
+                      <span matListItemTitle>{{ prerrequisito.nombre }}</span>
+                      <span matListItemLine>{{ prerrequisito.codigo }}</span>
+                    </div>
+                    <button mat-icon-button color="warn" (click)="eliminarPrerrequisito(prerrequisito.codigo)" 
+                            matTooltip="Eliminar prerrequisito">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
                 </mat-list-item>
               </mat-list>
             </div>
@@ -87,7 +101,31 @@ import { MatListModule } from '@angular/material/list';
   styles: [
     `
     .container {
-      padding: 20px;
+      padding: 24px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    mat-card {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    mat-card-header {
+      background-color: #f5f5f5;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    }
+
+    mat-card-title {
+      color: #3f51b5;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    mat-card-subtitle {
+      color: #616161;
     }
 
     .form-row {
@@ -118,6 +156,13 @@ import { MatListModule } from '@angular/material/list';
       justify-content: center;
       padding: 20px;
     }
+
+    .prerrequisito-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
     `
   ]
 })
@@ -131,7 +176,8 @@ export class CursoPrerrequisitosComponent implements OnInit {
     private fb: FormBuilder,
     private cursoService: CursoService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {
     this.form = this.fb.group({
       prerrequisitoCodigos: [[], Validators.required]
@@ -155,6 +201,9 @@ export class CursoPrerrequisitosComponent implements OnInit {
       },
       error => {
         console.error('Error al cargar curso', error);
+        this.snackBar.open('Error al cargar el curso', 'Cerrar', {
+          duration: 3000
+        });
         this.router.navigate(['/cursos']);
       }
     );
@@ -167,6 +216,9 @@ export class CursoPrerrequisitosComponent implements OnInit {
       },
       error => {
         console.error('Error al cargar cursos', error);
+        this.snackBar.open('Error al cargar los cursos', 'Cerrar', {
+          duration: 3000
+        });
       }
     );
   }
@@ -184,6 +236,9 @@ export class CursoPrerrequisitosComponent implements OnInit {
       
       this.cursoService.addPrerrequisitos(this.cursoCodigo, prerrequisitos).subscribe(
         () => {
+          this.snackBar.open('Prerrequisitos agregados con éxito', 'Cerrar', {
+            duration: 3000
+          });
           this.cargarCurso(); // Recargar el curso para mostrar los nuevos prerrequisitos
           this.form.reset({
             prerrequisitoCodigos: []
@@ -191,6 +246,28 @@ export class CursoPrerrequisitosComponent implements OnInit {
         },
         error => {
           console.error('Error al agregar prerrequisitos', error);
+          this.snackBar.open('Error al agregar prerrequisitos', 'Cerrar', {
+            duration: 3000
+          });
+        }
+      );
+    }
+  }
+
+  eliminarPrerrequisito(codigoPrerrequisito: string): void {
+    if (confirm('¿Está seguro que desea eliminar este prerrequisito?')) {
+      this.cursoService.removePrerrequisito(this.cursoCodigo, codigoPrerrequisito).subscribe(
+        () => {
+          this.snackBar.open('Prerrequisito eliminado con éxito', 'Cerrar', {
+            duration: 3000
+          });
+          this.cargarCurso(); // Recargar el curso para actualizar la lista de prerrequisitos
+        },
+        error => {
+          console.error('Error al eliminar prerrequisito', error);
+          this.snackBar.open('Error al eliminar prerrequisito', 'Cerrar', {
+            duration: 3000
+          });
         }
       );
     }

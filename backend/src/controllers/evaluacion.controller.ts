@@ -3,12 +3,14 @@ import { EvaluacionService } from '../services/evaluacion.service';
 import { Evaluacion } from '../entities/evaluacion.entity';
 import { CreateEvaluacionDto, UpdateEvaluacionDto } from '../dto/evaluacion.dto';
 import { CursoService } from '../services/curso.service';
+import { IdGeneratorContext } from '../strategies/id-generator.strategy';
 
 @Controller('evaluaciones')
 export class EvaluacionController {
     constructor(
         private readonly evaluacionService: EvaluacionService,
-        private readonly cursoService: CursoService
+        private readonly cursoService: CursoService,
+        private readonly idGenerator: IdGeneratorContext
     ) {}
 
     @Get()
@@ -29,7 +31,14 @@ export class EvaluacionController {
     @Post()
     async create(@Body() createEvaluacionDto: CreateEvaluacionDto): Promise<Evaluacion> {
         const evaluacion = new Evaluacion();
-        evaluacion.id = createEvaluacionDto.id;
+        
+        // Generar ID automáticamente si no se proporciona
+        if (!createEvaluacionDto.id) {
+            evaluacion.id = await this.idGenerator.generateId('evaluacion', this.evaluacionService.getRepository());
+        } else {
+            evaluacion.id = createEvaluacionDto.id;
+        }
+        
         evaluacion.fechaRealizacion = createEvaluacionDto.fechaRealizacion;
         
         // Asignar el curso a la evaluación
@@ -46,6 +55,13 @@ export class EvaluacionController {
     ): Promise<Evaluacion> {
         const evaluacion = new Evaluacion();
         evaluacion.fechaRealizacion = updateEvaluacionDto.fechaRealizacion;
+        
+        // Si se proporciona un código de curso, actualizar el curso
+        if (updateEvaluacionDto.cursoCodigo) {
+            const curso = await this.cursoService.findOne(updateEvaluacionDto.cursoCodigo);
+            evaluacion.curso = curso;
+        }
+        
         return this.evaluacionService.update(id, evaluacion);
     }
 

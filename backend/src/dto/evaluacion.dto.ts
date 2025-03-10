@@ -1,11 +1,11 @@
-import { IsString, IsNotEmpty, Length, IsDate } from 'class-validator';
+import { IsString, IsNotEmpty, Length, IsDate, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateEvaluacionDto {
     @IsString()
-    @IsNotEmpty({ message: 'El ID es requerido' })
+    @IsOptional()
     @Length(5, 20, { message: 'El ID debe tener entre 5 y 20 caracteres' })
-    id: string;
+    id?: string;
 
     @Type(() => Date)
     @IsDate()
@@ -22,4 +22,8 @@ export class UpdateEvaluacionDto {
     @IsDate()
     @IsNotEmpty({ message: 'La fecha de realización es requerida' })
     fechaRealizacion: Date;
+    
+    @IsString()
+    @IsOptional()
+    cursoCodigo?: string;
 } 

@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import * as nodeCrypto from 'crypto';
+import { getTypeOrmConfig } from './config/typeorm.config';
 
 // Entidades
 import { Departamento } from './entities/departamento.entity';
@@ -12,6 +15,7 @@ import { Matricula } from './entities/matricula.entity';
 import { Evaluacion } from './entities/evaluacion.entity';
 import { Calificacion } from './entities/calificacion.entity';
 import { Usuario } from './entities/usuario.entity';
+import { Horario } from './entities/horario.entity';
 
 // Servicios
 import { DepartamentoService } from './services/departamento.service';
@@ -21,6 +25,7 @@ import { EstudianteService } from './services/estudiante.service';
 import { MatriculaService } from './services/matricula.service';
 import { EvaluacionService } from './services/evaluacion.service';
 import { CalificacionService } from './services/calificacion.service';
+import { HorarioService } from './services/horario.service';
 
 // Controladores
 import { DepartamentoController } from './controllers/departamento.controller';
@@ -30,6 +35,7 @@ import { EstudianteController } from './controllers/estudiante.controller';
 import { MatriculaController } from './controllers/matricula.controller';
 import { EvaluacionController } from './controllers/evaluacion.controller';
 import { CalificacionController } from './controllers/calificacion.controller';
+import { HorarioController } from './controllers/horario.controller';
 
 // Módulos
 import { AuthModule } from './modules/auth.module';
@@ -37,24 +43,14 @@ import { IdGeneratorModule } from './strategies/id-generator.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
-      database: 'sistema_academico',
-      entities: [
-        Departamento,
-        Profesor,
-        Curso,
-        Estudiante,
-        Matricula,
-        Evaluacion,
-        Calificacion,
-        Usuario
-      ],
-      synchronize: true, // Solo usar en desarrollo
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: getTypeOrmConfig,
+      inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([
       Departamento,
@@ -63,7 +59,8 @@ import { IdGeneratorModule } from './strategies/id-generator.module';
       Estudiante,
       Matricula,
       Evaluacion,
-      Calificacion
+      Calificacion,
+      Horario
     ]),
     AuthModule,
     IdGeneratorModule
@@ -76,7 +73,8 @@ import { IdGeneratorModule } from './strategies/id-generator.module';
     EstudianteController,
     MatriculaController,
     EvaluacionController,
-    CalificacionController
+    CalificacionController,
+    HorarioController
   ],
   providers: [
     AppService,
@@ -86,7 +84,8 @@ import { IdGeneratorModule } from './strategies/id-generator.module';
     EstudianteService,
     MatriculaService,
     EvaluacionService,
-    CalificacionService
+    CalificacionService,
+    HorarioService
   ],
 })
 export class AppModule {}
